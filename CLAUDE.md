@@ -43,6 +43,35 @@ All Gradle commands are run from the project root. On Windows, use `./gradlew.ba
 - **Theme**: `PollaFutbolera_AndroidTheme` in `ui/theme/` — supports dynamic color (Android 12+), dark/light modes. Color tokens are in `Color.kt`, typography in `Type.kt`.
 - **Entry point**: `MainActivity` — single-activity architecture. Uses `enableEdgeToEdge()` and `Scaffold` as the root layout.
 
+### Screens & Navigation
+
+There is **no Compose Navigation / NavHost**. Screen transitions use a boolean `isSignedIn` state (`rememberSaveable`) in `MainActivity` that switches between two composables:
+- `SignInScreen` — Google Sign-In OAuth flow via `rememberLauncherForActivityResult`
+- `SheetScreen` — displays data fetched from Google Sheets API
+
+### Data Layer
+
+```
+data/
+  model/       SheetData.kt  — ValueRange (Moshi-annotated data class)
+  remote/      SheetsApiService.kt (Retrofit interface), SheetsApiClient.kt (singleton OkHttp+Moshi)
+  repository/  SheetsRepository.kt — fetches OAuth token via GoogleAuthUtil, calls Sheets REST API
+```
+
+- **Network**: Retrofit 2 + OkHttp 4 + Moshi. Base URL: `https://sheets.googleapis.com/`. Logging interceptor set to `BODY` level.
+- **Auth**: Google Sign-In (`play-services-auth`). The access token for the Sheets API is retrieved with `GoogleAuthUtil.getToken()` on `Dispatchers.IO`.
+- **No DI framework**: All dependencies are instantiated manually. `SheetsApiClient` is a Kotlin `object` (singleton). `SheetsRepository` is created directly inside `SheetViewModel`.
+
+### ViewModel / UI State
+
+`SheetViewModel` (extends `AndroidViewModel`) uses a sealed interface:
+
+```kotlin
+sealed interface SheetUiState { Idle | Loading | Success(data) | Error(message) }
+```
+
+State is exposed as `StateFlow` and collected in Compose with `collectAsStateWithLifecycle()`.
+
 ## Key Conventions
 
 - Dependency versions are managed via the version catalog at `gradle/libs.versions.toml`.

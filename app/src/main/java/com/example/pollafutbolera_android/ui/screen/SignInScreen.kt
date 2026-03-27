@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
+import com.google.android.gms.common.api.Scope
 
 @Composable
 fun SignInScreen(
@@ -32,6 +33,7 @@ fun SignInScreen(
     val gso = remember {
         GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestEmail()
+            .requestScopes(Scope("https://www.googleapis.com/auth/spreadsheets.readonly"))
             .build()
     }
     val googleSignInClient = remember { GoogleSignIn.getClient(context, gso) }

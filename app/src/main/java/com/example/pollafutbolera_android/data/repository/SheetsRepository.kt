@@ -12,7 +12,7 @@ class SheetsRepository(private val context: Context) {
 
     companion object {
         private const val SPREADSHEET_ID = "1WB0W5mQkT2uIKL62fuwP4-8iUgMzAE9oQSBcixxc1vw"
-        private const val RANGE = "Sheet1!A1:B2"
+        private const val RANGE = "Hoja%201!A1:B2"
         private const val SCOPE = "oauth2:https://www.googleapis.com/auth/spreadsheets.readonly"
     }
 

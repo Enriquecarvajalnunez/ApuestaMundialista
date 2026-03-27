@@ -8,6 +8,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -26,10 +27,12 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.RadioButtonUnchecked
 import androidx.compose.material.icons.filled.SportsSoccer
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -51,7 +54,11 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.pollafutbolera_android.data.model.BetEntry
 import com.example.pollafutbolera_android.ui.theme.PollaFutbolera_AndroidTheme
+import com.example.pollafutbolera_android.ui.viewmodel.BetRegistrationViewModel
 
 // ---------- Modelos ----------
 
@@ -86,8 +93,10 @@ val tournamentGroups = listOf(
 @Composable
 fun BetRegistrationScreen(
     groups: List<Group> = tournamentGroups,
-    onSubmit: (name: String, idNumber: String, scores: Map<Int, Pair<Int, Int>>) -> Unit = { _, _, _ -> }
+    viewModel: BetRegistrationViewModel = viewModel()
 ) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
     var fullName by remember { mutableStateOf("") }
     var idNumber by remember { mutableStateOf("") }
     val scores = remember { mutableStateMapOf<Int, Pair<String, String>>() }
@@ -101,13 +110,45 @@ fun BetRegistrationScreen(
         s != null && s.first.isNotBlank() && s.second.isNotBlank()
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp, vertical = 24.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
+    val isLoading = uiState is BetRegistrationViewModel.UiState.Loading
+
+    // Diálogo de éxito
+    if (uiState is BetRegistrationViewModel.UiState.Success) {
+        AlertDialog(
+            onDismissRequest = { viewModel.resetState() },
+            title = { Text("¡Apuesta registrada!") },
+            text = { Text("Tu apuesta fue guardada exitosamente.") },
+            confirmButton = {
+                Button(onClick = { viewModel.resetState() }) {
+                    Text("OK")
+                }
+            }
+        )
+    }
+
+    // Diálogo de error
+    if (uiState is BetRegistrationViewModel.UiState.Error) {
+        val errorMsg = (uiState as BetRegistrationViewModel.UiState.Error).message
+        AlertDialog(
+            onDismissRequest = { viewModel.resetState() },
+            title = { Text("Error al registrar") },
+            text = { Text(errorMsg) },
+            confirmButton = {
+                Button(onClick = { viewModel.resetState() }) {
+                    Text("Reintentar")
+                }
+            }
+        )
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 16.dp, vertical = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
         // Encabezado
         Text(
             text = "Registro de Apuesta",
@@ -201,12 +242,21 @@ fun BetRegistrationScreen(
 
                 Button(
                     onClick = {
-                        val parsedScores = scores.mapValues { (_, v) ->
-                            Pair(v.first.toIntOrNull() ?: 0, v.second.toIntOrNull() ?: 0)
+                        val bets = groups.flatMap { group ->
+                            group.matches.mapNotNull { match ->
+                                val s = scores[match.id] ?: return@mapNotNull null
+                                BetEntry(
+                                    grupo = group.name,
+                                    equipoA = match.teamA,
+                                    equipoB = match.teamB,
+                                    marcadorA = s.first.toIntOrNull() ?: 0,
+                                    marcadorB = s.second.toIntOrNull() ?: 0
+                                )
+                            }
                         }
-                        onSubmit(fullName, idNumber, parsedScores)
+                        viewModel.submit(fullName, idNumber, bets)
                     },
-                    enabled = allScoresFilled,
+                    enabled = allScoresFilled && !isLoading,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(52.dp),
@@ -222,7 +272,12 @@ fun BetRegistrationScreen(
                 }
             }
         }
-    }
+        } // cierre Column
+
+        if (isLoading) {
+            CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+        }
+    } // cierre Box
 }
 
 // ---------- Card de grupo expandible ----------
