@@ -23,6 +23,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.RadioButtonUnchecked
@@ -35,6 +36,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
@@ -92,6 +94,7 @@ val tournamentGroups = listOf(
 
 @Composable
 fun BetRegistrationScreen(
+    onBack: () -> Unit = {},
     groups: List<Group> = tournamentGroups,
     viewModel: BetRegistrationViewModel = viewModel()
 ) {
@@ -150,12 +153,23 @@ fun BetRegistrationScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
         // Encabezado
-        Text(
-            text = "Registro de Apuesta",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary
-        )
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(onClick = onBack) {
+                Icon(
+                    imageVector = Icons.Filled.ArrowBack,
+                    contentDescription = "Volver",
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
+            Text(
+                text = "Registro de Apuesta",
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary
+            )
+        }
         Text(
             text = "Ingresa tus datos y predice los marcadores",
             style = MaterialTheme.typography.bodyMedium,

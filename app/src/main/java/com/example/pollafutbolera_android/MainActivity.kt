@@ -13,8 +13,10 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.example.pollafutbolera_android.ui.screen.BetRegistrationScreen
+import com.example.pollafutbolera_android.ui.screen.HomeScreen
 import com.example.pollafutbolera_android.ui.screen.SheetScreen
 import com.example.pollafutbolera_android.ui.screen.SignInScreen
+import com.example.pollafutbolera_android.ui.screen.ViewBetsScreen
 import com.example.pollafutbolera_android.ui.theme.PollaFutbolera_AndroidTheme
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.common.api.Scope
@@ -32,13 +34,25 @@ class MainActivity : ComponentActivity() {
                         account != null && GoogleSignIn.hasPermissions(account, sheetsScope)
                     )
                 }
+                var showBetRegistration by rememberSaveable { mutableStateOf(false) }
+                var showViewBets by rememberSaveable { mutableStateOf(false) }
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    if (isSignedIn) {
-                        BetRegistrationScreen()
-                    } else {
-                        SignInScreen(
+                    when {
+                        !isSignedIn -> SignInScreen(
                             modifier = Modifier.padding(innerPadding),
                             onSignedIn = { isSignedIn = true }
+                        )
+                        showBetRegistration -> BetRegistrationScreen(
+                            onBack = { showBetRegistration = false }
+                        )
+                        showViewBets -> ViewBetsScreen(
+                            modifier = Modifier.padding(innerPadding),
+                            onBack = { showViewBets = false }
+                        )
+                        else -> HomeScreen(
+                            modifier = Modifier.padding(innerPadding),
+                            onRegisterBetsClick = { showBetRegistration = true },
+                            onViewBetsClick = { showViewBets = true }
                         )
                     }
                 }
