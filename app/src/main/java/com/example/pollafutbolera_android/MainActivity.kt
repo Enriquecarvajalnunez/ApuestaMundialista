@@ -12,10 +12,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import com.example.pollafutbolera_android.ui.screen.AdminLoginScreen
 import com.example.pollafutbolera_android.ui.screen.BetRegistrationScreen
 import com.example.pollafutbolera_android.ui.screen.HomeScreen
 import com.example.pollafutbolera_android.ui.screen.SheetScreen
 import com.example.pollafutbolera_android.ui.screen.SignInScreen
+import com.example.pollafutbolera_android.ui.screen.StandingsScreen
 import com.example.pollafutbolera_android.ui.screen.ViewBetsScreen
 import com.example.pollafutbolera_android.ui.theme.PollaFutbolera_AndroidTheme
 import com.google.android.gms.auth.api.signin.GoogleSignIn
@@ -36,6 +38,8 @@ class MainActivity : ComponentActivity() {
                 }
                 var showBetRegistration by rememberSaveable { mutableStateOf(false) }
                 var showViewBets by rememberSaveable { mutableStateOf(false) }
+                var showStandings by rememberSaveable { mutableStateOf(false) }
+                var showAdminLogin by rememberSaveable { mutableStateOf(false) }
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     when {
                         !isSignedIn -> SignInScreen(
@@ -49,10 +53,17 @@ class MainActivity : ComponentActivity() {
                             modifier = Modifier.padding(innerPadding),
                             onBack = { showViewBets = false }
                         )
+                        showStandings -> StandingsScreen(
+                            modifier = Modifier.padding(innerPadding)
+                        )
+                        showAdminLogin -> AdminLoginScreen(
+                            modifier = Modifier.padding(innerPadding)
+                        )
                         else -> HomeScreen(
-                            modifier = Modifier.padding(innerPadding),
                             onRegisterBetsClick = { showBetRegistration = true },
-                            onViewBetsClick = { showViewBets = true }
+                            onViewBetsClick = { showViewBets = true },
+                            onStandingsClick = { showStandings = true },
+                            onAdminLoginClick = { showAdminLogin = true }
                         )
                     }
                 }
