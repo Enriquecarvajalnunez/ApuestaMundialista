@@ -2,6 +2,7 @@ package com.example.pollafutbolera_android.data.repository
 
 import android.content.Context
 import com.example.pollafutbolera_android.data.model.BetResult
+import com.example.pollafutbolera_android.data.model.ValueRange
 import com.example.pollafutbolera_android.data.remote.SheetsApiClient
 import com.google.android.gms.auth.GoogleAuthUtil
 import com.google.android.gms.auth.api.signin.GoogleSignIn
@@ -11,8 +12,8 @@ import kotlinx.coroutines.withContext
 class ViewBetsRepository(private val context: Context) {
 
     companion object {
-        private const val SPREADSHEET_ID = "1WB0W5mQkT2uIKL62fuwP4-8iUgMzAE9oQSBcixxc1vw"
-        private const val SCOPE = "oauth2:https://www.googleapis.com/auth/spreadsheets.readonly"
+        private const val SPREADSHEET_ID = "15r-Yw5WvfSIu4hlV1CaBIAUb8mPZ_0i741XU1lSfkrk"
+        private const val SCOPE = "oauth2:https://www.googleapis.com/auth/spreadsheets"
     }
 
     suspend fun fetchBetsForPlayer(identificacion: String): Pair<String, List<BetResult>> =
@@ -22,36 +23,39 @@ class ViewBetsRepository(private val context: Context) {
             val token = GoogleAuthUtil.getToken(context, account.account!!, SCOPE)
             val auth = "Bearer $token"
 
-            // Paso 1: buscar jugadorId en hoja Jugadores (columna C = Identificacion)
-            val jugadoresData = SheetsApiClient.service.getValues(
+            // Paso 1: leer Jugadores y Apuestas en una sola llamada (batchGet usa @Query, evita encoding en path)
+            val batch = SheetsApiClient.service.batchGetValues(
                 authorization = auth,
                 spreadsheetId = SPREADSHEET_ID,
-                range = "Jugadores!A2:C1000"
+                ranges = listOf("Jugadores!A2:C1000", "Apuestas!A1:CZ500")
             )
-            val jugadorRow = jugadoresData.values.firstOrNull { row ->
+
+            // Paso 2: buscar jugador por cédula
+            val jugadoresRows = batch.valueRanges.getOrNull(0)?.values ?: emptyList()
+            val jugadorRow = jugadoresRows.firstOrNull { row ->
                 row.getOrNull(2)?.trim() == identificacion.trim()
             } ?: error("No se encontró ningún jugador con identificación: $identificacion")
 
-            val jugadorId = jugadorRow.getOrNull(0)?.toIntOrNull()
+            val jugadorId = jugadorRow.getOrNull(0)?.trim()
                 ?: error("El jugador encontrado no tiene un ID válido")
             val jugadorNombre = jugadorRow.getOrNull(1) ?: identificacion
 
-            // Paso 2: calcular columnas del jugador (misma lógica que el Apps Script)
-            // colA (1-based) = 6 + (jugadorId - 1) * 2
-            // colA (0-based) = 5 + (jugadorId - 1) * 2
-            val colA0 = 5 + (jugadorId - 1) * 2
-            val colB0 = colA0 + 1
-
-            // Paso 3: leer hoja Apuestas (filas 2 en adelante = datos reales)
-            val apuestasData = SheetsApiClient.service.getValues(
-                authorization = auth,
-                spreadsheetId = SPREADSHEET_ID,
-                range = "Apuestas!A1:CZ500"
-            )
-            val rows = apuestasData.values
-            if (rows.size < 2) return@withContext Pair(jugadorNombre, emptyList<BetResult>())
+            // Paso 3: armar las claves de columna para este jugador
+            val headerKeyA = "pronosticoJugadorID${jugadorId}_A"
+            val headerKeyB = "pronosticoJugadorID${jugadorId}_B"
 
             // Paso 4: extraer pronósticos del jugador por partido
+            val rows = batch.valueRanges.getOrNull(1)?.values ?: emptyList()
+            if (rows.size < 2) return@withContext Pair(jugadorNombre, emptyList<BetResult>())
+
+            val headerRow = rows[0]
+            val colA0 = headerRow.indexOfFirst { it.trim() == headerKeyA }
+            val colB0 = headerRow.indexOfFirst { it.trim() == headerKeyB }
+
+            if (colA0 < 0 || colB0 < 0) {
+                error("No se encontraron columnas '$headerKeyA'/'$headerKeyB' en la hoja Apuestas")
+            }
+
             val bets = rows.drop(1).mapNotNull { row ->
                 val grupo   = row.getOrNull(0)?.takeIf { it.isNotBlank() } ?: return@mapNotNull null
                 val equipoA = row.getOrNull(1)?.takeIf { it.isNotBlank() } ?: return@mapNotNull null

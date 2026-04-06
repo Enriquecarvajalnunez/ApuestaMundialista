@@ -30,7 +30,10 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -64,6 +67,16 @@ fun ViewBetsScreen(
     var idNumber by remember { mutableStateOf("") }
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val keyboard = LocalSoftwareKeyboardController.current
+
+    val consentLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { viewModel.retryAfterConsent() }
+
+    LaunchedEffect(uiState) {
+        if (uiState is ViewBetsViewModel.UiState.NeedConsent) {
+            consentLauncher.launch((uiState as ViewBetsViewModel.UiState.NeedConsent).intent)
+        }
+    }
 
     Column(
         modifier = modifier
@@ -130,11 +143,12 @@ fun ViewBetsScreen(
             Text("Consultar apuestas", fontWeight = FontWeight.Bold)
         }
 
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(12.dp))
 
         // Contenido según estado
         when (val state = uiState) {
             is ViewBetsViewModel.UiState.Idle -> Unit
+            is ViewBetsViewModel.UiState.NeedConsent -> Unit
 
             is ViewBetsViewModel.UiState.Loading -> {
                 Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
