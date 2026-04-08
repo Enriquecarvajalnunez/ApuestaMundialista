@@ -17,6 +17,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AdminPanelSettings
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
@@ -149,6 +150,38 @@ fun ViewBetsScreen(
         when (val state = uiState) {
             is ViewBetsViewModel.UiState.Idle -> Unit
             is ViewBetsViewModel.UiState.NeedConsent -> Unit
+
+            is ViewBetsViewModel.UiState.NoAdminSession -> {
+                Box(
+                    modifier = Modifier.fillMaxWidth().padding(top = 32.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.AdminPanelSettings,
+                            contentDescription = null,
+                            tint = GoldBright,
+                            modifier = Modifier.size(56.dp)
+                        )
+                        Text(
+                            text = "Sesión de administrador requerida",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = GoldBright,
+                            textAlign = TextAlign.Center
+                        )
+                        Text(
+                            text = "Para consultar apuestas, el administrador debe iniciar sesión primero desde el menú ⋮ → \"Login de administración\".",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                }
+            }
 
             is ViewBetsViewModel.UiState.Loading -> {
                 Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {

@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.pollafutbolera_android.data.model.BetResult
 import com.example.pollafutbolera_android.data.repository.ViewBetsRepository
 import com.google.android.gms.auth.UserRecoverableAuthException
+import com.google.android.gms.auth.api.signin.GoogleSignIn
 import retrofit2.HttpException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,6 +19,7 @@ class ViewBetsViewModel(application: Application) : AndroidViewModel(application
     sealed interface UiState {
         object Idle : UiState
         object Loading : UiState
+        object NoAdminSession : UiState
         data class Success(val playerName: String, val bets: List<BetResult>) : UiState
         data class Error(val message: String) : UiState
         data class NeedConsent(val intent: Intent) : UiState
@@ -32,6 +34,10 @@ class ViewBetsViewModel(application: Application) : AndroidViewModel(application
 
     fun searchBets(identificacion: String) {
         if (identificacion.isBlank()) return
+        if (GoogleSignIn.getLastSignedInAccount(getApplication()) == null) {
+            _uiState.value = UiState.NoAdminSession
+            return
+        }
         pendingIdentificacion = identificacion
         viewModelScope.launch {
             _uiState.value = UiState.Loading
