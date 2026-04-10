@@ -1,69 +1,79 @@
 package com.example.pollafutbolera_android.data.repository
 
-import android.content.Context
 import com.example.pollafutbolera_android.data.model.BetResult
-import com.example.pollafutbolera_android.data.model.ValueRange
-import com.example.pollafutbolera_android.data.remote.SheetsApiClient
-import com.google.android.gms.auth.GoogleAuthUtil
-import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.squareup.moshi.Moshi
+import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.logging.HttpLoggingInterceptor
 
-class ViewBetsRepository(private val context: Context) {
+class ViewBetsRepository {
 
-    companion object {
-        private const val SPREADSHEET_ID = "15r-Yw5WvfSIu4hlV1CaBIAUb8mPZ_0i741XU1lSfkrk"
-        private const val SCOPE = "oauth2:https://www.googleapis.com/auth/spreadsheets"
-    }
+    private data class ScriptBetResult(
+        val grupo: String,
+        val equipoA: String,
+        val equipoB: String,
+        val marcadorA: String,
+        val marcadorB: String
+    )
+
+    private data class ScriptResponse(
+        val success: Boolean,
+        val nombre: String? = null,
+        val bets: List<ScriptBetResult>? = null,
+        val error: String? = null
+    )
+
+    private val moshi = Moshi.Builder()
+        .addLast(KotlinJsonAdapterFactory())
+        .build()
+
+    // followRedirects=false igual que BetSubmitRepository: Apps Script redirige GET también
+    private val client = OkHttpClient.Builder()
+        .followRedirects(false)
+        .followSslRedirects(false)
+        .addInterceptor(HttpLoggingInterceptor().apply {
+            level = HttpLoggingInterceptor.Level.BODY
+        })
+        .build()
+
+    private val responseAdapter = moshi.adapter(ScriptResponse::class.java)
 
     suspend fun fetchBetsForPlayer(identificacion: String): Pair<String, List<BetResult>> =
         withContext(Dispatchers.IO) {
-            val account = GoogleSignIn.getLastSignedInAccount(context)
-                ?: error("Usuario no autenticado")
-            val token = GoogleAuthUtil.getToken(context, account.account!!, SCOPE)
-            val auth = "Bearer $token"
+            val url = "${BetSubmitRepository.SCRIPT_URL}?accion=verApuestas&cedula=${identificacion.trim()}"
 
-            // Paso 1: leer Jugadores y Apuestas en una sola llamada (batchGet usa @Query, evita encoding en path)
-            val batch = SheetsApiClient.service.batchGetValues(
-                authorization = auth,
-                spreadsheetId = SPREADSHEET_ID,
-                ranges = listOf("Jugadores!A2:C1000", "Apuestas!A1:CZ500")
-            )
+            var request = Request.Builder().url(url).get().build()
+            var response = client.newCall(request).execute()
 
-            // Paso 2: buscar jugador por cédula
-            val jugadoresRows = batch.valueRanges.getOrNull(0)?.values ?: emptyList()
-            val jugadorRow = jugadoresRows.firstOrNull { row ->
-                row.getOrNull(2)?.trim() == identificacion.trim()
-            } ?: error("No se encontró ningún jugador con identificación: $identificacion")
-
-            val jugadorId = jugadorRow.getOrNull(0)?.trim()
-                ?: error("El jugador encontrado no tiene un ID válido")
-            val jugadorNombre = jugadorRow.getOrNull(1) ?: identificacion
-
-            // Paso 3: armar las claves de columna para este jugador
-            val headerKeyA = "pronosticoJugadorID${jugadorId}_A"
-            val headerKeyB = "pronosticoJugadorID${jugadorId}_B"
-
-            // Paso 4: extraer pronósticos del jugador por partido
-            val rows = batch.valueRanges.getOrNull(1)?.values ?: emptyList()
-            if (rows.size < 2) return@withContext Pair(jugadorNombre, emptyList<BetResult>())
-
-            val headerRow = rows[0]
-            val colA0 = headerRow.indexOfFirst { it.trim() == headerKeyA }
-            val colB0 = headerRow.indexOfFirst { it.trim() == headerKeyB }
-
-            if (colA0 < 0 || colB0 < 0) {
-                error("No se encontraron columnas '$headerKeyA'/'$headerKeyB' en la hoja Apuestas")
+            // Apps Script puede devolver 302 en GET igual que en POST
+            if (response.code in 300..399) {
+                val location = response.header("Location")
+                    ?: error("Redirect sin Location header")
+                response.close()
+                request = Request.Builder().url(location).get().build()
+                response = client.newCall(request).execute()
             }
 
-            val bets = rows.drop(1).mapNotNull { row ->
-                val grupo   = row.getOrNull(0)?.takeIf { it.isNotBlank() } ?: return@mapNotNull null
-                val equipoA = row.getOrNull(1)?.takeIf { it.isNotBlank() } ?: return@mapNotNull null
-                val equipoB = row.getOrNull(2)?.takeIf { it.isNotBlank() } ?: return@mapNotNull null
-                val marcadorA = row.getOrNull(colA0)?.takeIf { it.isNotBlank() } ?: "-"
-                val marcadorB = row.getOrNull(colB0)?.takeIf { it.isNotBlank() } ?: "-"
-                BetResult(grupo, equipoA, equipoB, marcadorA, marcadorB)
-            }
-            Pair(jugadorNombre, bets)
+            val rawBody = response.body?.string()
+                ?: error("Respuesta vacía del servidor")
+
+            val parsed = try {
+                responseAdapter.fromJson(rawBody)
+            } catch (e: Exception) {
+                // Muestra los primeros 300 chars del body para diagnóstico
+                error("Respuesta no es JSON válido: ${rawBody.take(300)}")
+            } ?: error("Formato de respuesta inválido")
+
+            if (!parsed.success) error(parsed.error ?: "Error desconocido")
+
+            val nombre = parsed.nombre ?: identificacion
+            val bets = parsed.bets?.map { r ->
+                BetResult(r.grupo, r.equipoA, r.equipoB, r.marcadorA, r.marcadorB)
+            } ?: emptyList()
+
+            Pair(nombre, bets)
         }
 }

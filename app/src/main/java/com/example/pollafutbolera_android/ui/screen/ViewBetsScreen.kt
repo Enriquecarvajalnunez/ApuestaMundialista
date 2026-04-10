@@ -17,7 +17,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AdminPanelSettings
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
@@ -31,10 +30,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -68,16 +64,6 @@ fun ViewBetsScreen(
     var idNumber by remember { mutableStateOf("") }
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val keyboard = LocalSoftwareKeyboardController.current
-
-    val consentLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartActivityForResult()
-    ) { viewModel.retryAfterConsent() }
-
-    LaunchedEffect(uiState) {
-        if (uiState is ViewBetsViewModel.UiState.NeedConsent) {
-            consentLauncher.launch((uiState as ViewBetsViewModel.UiState.NeedConsent).intent)
-        }
-    }
 
     Column(
         modifier = modifier
@@ -149,39 +135,6 @@ fun ViewBetsScreen(
         // Contenido según estado
         when (val state = uiState) {
             is ViewBetsViewModel.UiState.Idle -> Unit
-            is ViewBetsViewModel.UiState.NeedConsent -> Unit
-
-            is ViewBetsViewModel.UiState.NoAdminSession -> {
-                Box(
-                    modifier = Modifier.fillMaxWidth().padding(top = 32.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.AdminPanelSettings,
-                            contentDescription = null,
-                            tint = GoldBright,
-                            modifier = Modifier.size(56.dp)
-                        )
-                        Text(
-                            text = "Sesión de administrador requerida",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = GoldBright,
-                            textAlign = TextAlign.Center
-                        )
-                        Text(
-                            text = "Para consultar apuestas, el administrador debe iniciar sesión primero desde el menú ⋮ → \"Login de administración\".",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            textAlign = TextAlign.Center
-                        )
-                    }
-                }
-            }
 
             is ViewBetsViewModel.UiState.Loading -> {
                 Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
