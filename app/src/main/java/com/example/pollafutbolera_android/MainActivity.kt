@@ -40,7 +40,7 @@ class MainActivity : ComponentActivity() {
                             onBack = { showViewBets = false }
                         )
                         showStandings -> StandingsScreen(
-                            modifier = Modifier.padding(innerPadding)
+                            onBack = { showStandings = false }
                         )
                         showAdminLogin -> AdminLoginScreen(
                             modifier = Modifier.padding(innerPadding),

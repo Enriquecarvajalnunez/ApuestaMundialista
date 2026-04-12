@@ -15,12 +15,16 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AdminPanelSettings
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -37,11 +41,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.pollafutbolera_android.ui.theme.GoldBright
 import com.example.pollafutbolera_android.ui.theme.GreenDark
 import com.example.pollafutbolera_android.ui.theme.GreenMid
 import com.example.pollafutbolera_android.ui.theme.MintGreen
 import com.example.pollafutbolera_android.ui.theme.PollaFutbolera_AndroidTheme
+import com.example.pollafutbolera_android.ui.viewmodel.AdminViewModel
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
@@ -51,9 +58,11 @@ import com.google.android.gms.common.api.Scope
 @Composable
 fun AdminLoginScreen(
     onBack: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    adminViewModel: AdminViewModel = viewModel()
 ) {
     val context = LocalContext.current
+    val rankingState by adminViewModel.rankingState.collectAsStateWithLifecycle()
 
     val gso = remember {
         GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
@@ -112,9 +121,7 @@ fun AdminLoginScreen(
                         )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = GreenMid
-                )
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = GreenMid)
             )
         },
         containerColor = GreenDark
@@ -125,69 +132,131 @@ fun AdminLoginScreen(
                 .padding(innerPadding)
                 .padding(horizontal = 24.dp, vertical = 32.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = if (isSignedIn) Arrangement.Top else Arrangement.Center
         ) {
-            Icon(
-                imageVector = if (isSignedIn) Icons.Filled.CheckCircle else Icons.Filled.AdminPanelSettings,
-                contentDescription = null,
-                tint = if (isSignedIn) MintGreen else GoldBright,
-                modifier = Modifier.size(72.dp)
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text(
-                text = if (isSignedIn) "Sesión activa" else "Login de administración",
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-                color = GoldBright,
-                textAlign = TextAlign.Center
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
             if (isSignedIn) {
+                // — Panel de administrador —
+                Icon(
+                    imageVector = Icons.Filled.CheckCircle,
+                    contentDescription = null,
+                    tint = MintGreen,
+                    modifier = Modifier.size(56.dp)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "Sesión activa",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = GoldBright
+                )
                 Text(
                     text = signedInEmail,
-                    style = MaterialTheme.typography.bodyLarge,
+                    style = MaterialTheme.typography.bodyMedium,
                     color = MintGreen,
                     textAlign = TextAlign.Center
                 )
 
                 Spacer(modifier = Modifier.height(32.dp))
+                HorizontalDivider(color = GreenMid, thickness = 1.dp)
+                Spacer(modifier = Modifier.height(24.dp))
 
+                // Botón Calcular Ranking
                 Button(
+                    onClick = { adminViewModel.calcularRanking() },
+                    enabled = rankingState !is AdminViewModel.RankingState.Loading,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(52.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = GoldBright,
+                        contentColor = GreenDark
+                    ),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.EmojiEvents,
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.size(8.dp))
+                    Text(
+                        text = "Calcular Ranking",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Estado del cálculo
+                when (val state = rankingState) {
+                    is AdminViewModel.RankingState.Loading -> {
+                        CircularProgressIndicator(color = GoldBright)
+                    }
+                    is AdminViewModel.RankingState.Success -> {
+                        Text(
+                            text = "Ranking calculado para ${state.totalJugadores} jugador(es)",
+                            color = MintGreen,
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                    is AdminViewModel.RankingState.Error -> {
+                        Text(
+                            text = state.message,
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodyMedium,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                    else -> Unit
+                }
+
+                Spacer(modifier = Modifier.weight(1f))
+
+                // Cerrar sesión al fondo
+                OutlinedButton(
                     onClick = {
                         googleSignInClient.signOut().addOnCompleteListener {
                             isSignedIn = false
                             signedInEmail = ""
                         }
                     },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(52.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MintGreen,
-                        contentColor = GreenDark
-                    ),
+                    modifier = Modifier.fillMaxWidth().height(48.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = MintGreen),
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     Text(
                         text = "Cerrar sesión",
-                        style = MaterialTheme.typography.titleMedium,
+                        style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold
                     )
                 }
             } else {
+                // — Pantalla de login —
+                Icon(
+                    imageVector = Icons.Filled.AdminPanelSettings,
+                    contentDescription = null,
+                    tint = GoldBright,
+                    modifier = Modifier.size(72.dp)
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = "Login de administración",
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = GoldBright,
+                    textAlign = TextAlign.Center
+                )
+                Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = "Inicia sesión con tu cuenta de Google para acceder al panel de administración",
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center
                 )
-
                 Spacer(modifier = Modifier.height(32.dp))
-
                 Button(
                     onClick = { launcher.launch(googleSignInClient.signInIntent) },
                     modifier = Modifier
@@ -205,7 +274,6 @@ fun AdminLoginScreen(
                         fontWeight = FontWeight.Bold
                     )
                 }
-
                 errorMessage?.let {
                     Spacer(modifier = Modifier.height(12.dp))
                     Text(
