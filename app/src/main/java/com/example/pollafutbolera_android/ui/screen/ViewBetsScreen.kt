@@ -17,14 +17,14 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -47,12 +47,11 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.pollafutbolera_android.data.model.BetResult
-import com.example.pollafutbolera_android.ui.theme.GoldBright
-import com.example.pollafutbolera_android.ui.theme.GreenDark
-import com.example.pollafutbolera_android.ui.theme.GreenLight
-import com.example.pollafutbolera_android.ui.theme.GreenMid
-import com.example.pollafutbolera_android.ui.theme.MintGreen
+import com.example.pollafutbolera_android.ui.theme.LimeGreen
+import com.example.pollafutbolera_android.ui.theme.NavyBlue
 import com.example.pollafutbolera_android.ui.theme.PollaFutbolera_AndroidTheme
+import com.example.pollafutbolera_android.ui.theme.SurfaceWhite
+import com.example.pollafutbolera_android.ui.theme.TextSecondary
 import com.example.pollafutbolera_android.ui.viewmodel.ViewBetsViewModel
 
 @Composable
@@ -75,22 +74,21 @@ fun ViewBetsScreen(
         Row(verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onBack) {
                 Icon(
-                    imageVector = Icons.Filled.ArrowBack,
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Volver",
-                    tint = MaterialTheme.colorScheme.primary
+                    tint = NavyBlue
                 )
             }
             Text(
                 text = "Ver apuestas realizadas",
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary
+                color = NavyBlue
             )
         }
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // Input + botón buscar
         OutlinedTextField(
             value = idNumber,
             onValueChange = { idNumber = it },
@@ -120,8 +118,8 @@ fun ViewBetsScreen(
                 .fillMaxWidth()
                 .height(50.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = MintGreen,
-                contentColor = GreenDark
+                containerColor = LimeGreen,
+                contentColor = NavyBlue
             ),
             shape = RoundedCornerShape(10.dp)
         ) {
@@ -132,13 +130,12 @@ fun ViewBetsScreen(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // Contenido según estado
         when (val state = uiState) {
             is ViewBetsViewModel.UiState.Idle -> Unit
 
             is ViewBetsViewModel.UiState.Loading -> {
                 Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(color = GoldBright, modifier = Modifier.padding(32.dp))
+                    CircularProgressIndicator(color = LimeGreen, modifier = Modifier.padding(32.dp))
                 }
             }
 
@@ -162,7 +159,7 @@ fun ViewBetsScreen(
                     Text(
                         text = "No se encontraron apuestas registradas para este jugador.",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = TextSecondary,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.fillMaxWidth().padding(top = 16.dp)
                     )
@@ -170,13 +167,13 @@ fun ViewBetsScreen(
                     Text(
                         text = "Jugador: ${state.playerName}",
                         style = MaterialTheme.typography.titleSmall,
-                        color = MintGreen,
+                        color = NavyBlue,
                         fontWeight = FontWeight.SemiBold
                     )
                     Text(
                         text = "${state.bets.size} partido(s) registrado(s)",
                         style = MaterialTheme.typography.labelLarge,
-                        color = GoldBright,
+                        color = LimeGreen,
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
                     LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -195,21 +192,19 @@ private fun BetResultCard(bet: BetResult) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = GreenMid),
+        colors = CardDefaults.cardColors(containerColor = SurfaceWhite),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(modifier = Modifier.padding(14.dp)) {
-            // Grupo
             Text(
                 text = bet.grupo,
                 style = MaterialTheme.typography.labelMedium,
-                color = GoldBright,
+                color = LimeGreen,
                 fontWeight = FontWeight.Bold
             )
             Spacer(modifier = Modifier.height(8.dp))
-            Divider(color = GreenLight, thickness = 0.5.dp)
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, thickness = 0.5.dp)
             Spacer(modifier = Modifier.height(8.dp))
-            // Marcador
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -218,7 +213,7 @@ private fun BetResultCard(bet: BetResult) {
                 Text(
                     text = bet.equipoA,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
+                    color = NavyBlue,
                     fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.weight(1f)
                 )
@@ -226,13 +221,13 @@ private fun BetResultCard(bet: BetResult) {
                     text = "${bet.marcadorA}  -  ${bet.marcadorB}",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = MintGreen,
+                    color = NavyBlue,
                     modifier = Modifier.padding(horizontal = 12.dp)
                 )
                 Text(
                     text = bet.equipoB,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
+                    color = NavyBlue,
                     fontWeight = FontWeight.SemiBold,
                     textAlign = TextAlign.End,
                     modifier = Modifier.weight(1f)

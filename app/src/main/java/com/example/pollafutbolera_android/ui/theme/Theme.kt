@@ -1,33 +1,36 @@
 package com.example.pollafutbolera_android.ui.theme
 
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 
-private val PollaColorScheme = darkColorScheme(
-    primary            = MintGreen,
-    onPrimary          = GreenDark,
-    primaryContainer   = GreenLight,
-    onPrimaryContainer = OnDarkText,
+private val PollaColorScheme = lightColorScheme(
+    primary             = NavyBlue,
+    onPrimary           = TextPrimary,
+    primaryContainer    = Color(0xFFD6E4F0),
+    onPrimaryContainer  = NavyBlue,
 
-    secondary          = GoldBright,
-    onSecondary        = GreenDark,
-    secondaryContainer = GoldDeep,
-    onSecondaryContainer = GreenDark,
+    secondary           = LimeGreen,
+    onSecondary         = NavyBlue,
+    secondaryContainer  = Color(0xFFEEF5C2),
+    onSecondaryContainer = NavyBlue,
 
-    tertiary           = MintGreenLight,
-    onTertiary         = GreenDark,
+    background          = BackgroundLight,
+    onBackground        = NavyBlue,
 
-    background         = GreenDark,
-    onBackground       = OnDarkText,
+    surface             = SurfaceWhite,
+    onSurface           = NavyBlue,
+    surfaceVariant      = Color(0xFFEEEEEE),
+    onSurfaceVariant    = TextSecondary,
 
-    surface            = SurfaceGlass,
-    onSurface          = OnDarkText,
-    surfaceVariant     = SurfaceGlassDark,
-    onSurfaceVariant   = OnDarkVariant,
+    outline             = Color(0xFFCCCCCC),
+    outlineVariant      = Color(0xFFE0E0E0),
 
-    outline            = GoldDeep,
-    outlineVariant     = GreenLight,
+    error               = Color(0xFFB00020),
+    onError             = TextPrimary,
+    errorContainer      = Color(0xFFFFDAD6),
+    onErrorContainer    = Color(0xFF410002),
 )
 
 @Composable

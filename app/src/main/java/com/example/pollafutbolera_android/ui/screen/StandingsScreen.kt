@@ -38,6 +38,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -45,12 +46,13 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.pollafutbolera_android.data.model.RankingEntry
-import com.example.pollafutbolera_android.ui.theme.GoldBright
-import com.example.pollafutbolera_android.ui.theme.GoldDeep
-import com.example.pollafutbolera_android.ui.theme.GreenDark
-import com.example.pollafutbolera_android.ui.theme.GreenMid
-import com.example.pollafutbolera_android.ui.theme.MintGreen
+import com.example.pollafutbolera_android.ui.theme.BackgroundLight
+import com.example.pollafutbolera_android.ui.theme.LimeGreen
+import com.example.pollafutbolera_android.ui.theme.NavyBlue
 import com.example.pollafutbolera_android.ui.theme.PollaFutbolera_AndroidTheme
+import com.example.pollafutbolera_android.ui.theme.SurfaceWhite
+import com.example.pollafutbolera_android.ui.theme.TextPrimary
+import com.example.pollafutbolera_android.ui.theme.TextSecondary
 import com.example.pollafutbolera_android.ui.viewmodel.StandingsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -73,7 +75,7 @@ fun StandingsScreen(
                     Text(
                         text = "Tabla de posiciones",
                         fontWeight = FontWeight.Bold,
-                        color = GoldBright
+                        color = TextPrimary
                     )
                 },
                 navigationIcon = {
@@ -81,7 +83,7 @@ fun StandingsScreen(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Volver",
-                            tint = GoldBright
+                            tint = TextPrimary
                         )
                     }
                 },
@@ -90,14 +92,14 @@ fun StandingsScreen(
                         Icon(
                             imageVector = Icons.Filled.Refresh,
                             contentDescription = "Actualizar",
-                            tint = GoldBright
+                            tint = LimeGreen
                         )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = GreenMid)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = NavyBlue)
             )
         },
-        containerColor = GreenDark
+        containerColor = BackgroundLight
     ) { innerPadding ->
         Box(
             modifier = modifier
@@ -109,7 +111,7 @@ fun StandingsScreen(
 
                 is StandingsViewModel.UiState.Loading -> {
                     CircularProgressIndicator(
-                        color = GoldBright,
+                        color = LimeGreen,
                         modifier = Modifier.align(Alignment.Center)
                     )
                 }
@@ -132,8 +134,8 @@ fun StandingsScreen(
                         Button(
                             onClick = { viewModel.loadRanking() },
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = MintGreen,
-                                contentColor = GreenDark
+                                containerColor = LimeGreen,
+                                contentColor = NavyBlue
                             ),
                             shape = RoundedCornerShape(10.dp)
                         ) {
@@ -154,13 +156,13 @@ fun StandingsScreen(
                             Icon(
                                 imageVector = Icons.Filled.EmojiEvents,
                                 contentDescription = null,
-                                tint = GoldBright,
+                                tint = LimeGreen,
                                 modifier = Modifier.size(56.dp)
                             )
                             Spacer(modifier = Modifier.height(12.dp))
                             Text(
                                 text = "Aún no hay puntajes disponibles",
-                                color = MintGreen,
+                                color = NavyBlue,
                                 style = MaterialTheme.typography.bodyLarge,
                                 textAlign = TextAlign.Center
                             )
@@ -185,17 +187,17 @@ fun StandingsScreen(
 
 @Composable
 private fun RankingCard(entry: RankingEntry) {
-    val posicionColor = when (entry.posicion) {
-        1 -> GoldBright
-        2 -> MintGreen
-        3 -> GoldDeep
-        else -> MaterialTheme.colorScheme.onSurfaceVariant
+    val posicionColor: Color = when (entry.posicion) {
+        1 -> LimeGreen
+        2 -> NavyBlue
+        3 -> TextSecondary
+        else -> MaterialTheme.colorScheme.outlineVariant
     }
 
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = GreenMid),
+        colors = CardDefaults.cardColors(containerColor = SurfaceWhite),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(
@@ -226,13 +228,8 @@ private fun RankingCard(entry: RankingEntry) {
                 Text(
                     text = entry.nombre,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface,
+                    color = NavyBlue,
                     style = MaterialTheme.typography.bodyLarge
-                )
-                Text(
-                    text = entry.cedula,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    style = MaterialTheme.typography.labelMedium
                 )
             }
 
@@ -241,12 +238,12 @@ private fun RankingCard(entry: RankingEntry) {
                 Text(
                     text = "${entry.puntos}",
                     fontWeight = FontWeight.Bold,
-                    color = GoldBright,
+                    color = LimeGreen,
                     style = MaterialTheme.typography.headlineSmall
                 )
                 Text(
                     text = "pts",
-                    color = GoldBright.copy(alpha = 0.7f),
+                    color = TextSecondary,
                     style = MaterialTheme.typography.labelSmall
                 )
             }

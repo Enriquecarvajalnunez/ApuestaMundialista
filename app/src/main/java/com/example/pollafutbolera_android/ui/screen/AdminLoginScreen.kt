@@ -43,11 +43,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.pollafutbolera_android.ui.theme.GoldBright
-import com.example.pollafutbolera_android.ui.theme.GreenDark
-import com.example.pollafutbolera_android.ui.theme.GreenMid
-import com.example.pollafutbolera_android.ui.theme.MintGreen
+import com.example.pollafutbolera_android.ui.theme.BackgroundLight
+import com.example.pollafutbolera_android.ui.theme.LimeGreen
+import com.example.pollafutbolera_android.ui.theme.NavyBlue
 import com.example.pollafutbolera_android.ui.theme.PollaFutbolera_AndroidTheme
+import com.example.pollafutbolera_android.ui.theme.TextPrimary
+import com.example.pollafutbolera_android.ui.theme.TextSecondary
 import com.example.pollafutbolera_android.ui.viewmodel.AdminViewModel
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
@@ -109,7 +110,7 @@ fun AdminLoginScreen(
                     Text(
                         text = "Administración",
                         fontWeight = FontWeight.Bold,
-                        color = GoldBright
+                        color = TextPrimary
                     )
                 },
                 navigationIcon = {
@@ -117,14 +118,14 @@ fun AdminLoginScreen(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Volver",
-                            tint = GoldBright
+                            tint = TextPrimary
                         )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = GreenMid)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = NavyBlue)
             )
         },
-        containerColor = GreenDark
+        containerColor = BackgroundLight
     ) { innerPadding ->
         Column(
             modifier = modifier
@@ -139,7 +140,7 @@ fun AdminLoginScreen(
                 Icon(
                     imageVector = Icons.Filled.CheckCircle,
                     contentDescription = null,
-                    tint = MintGreen,
+                    tint = LimeGreen,
                     modifier = Modifier.size(56.dp)
                 )
                 Spacer(modifier = Modifier.height(8.dp))
@@ -147,17 +148,17 @@ fun AdminLoginScreen(
                     text = "Sesión activa",
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
-                    color = GoldBright
+                    color = NavyBlue
                 )
                 Text(
                     text = signedInEmail,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MintGreen,
+                    color = TextSecondary,
                     textAlign = TextAlign.Center
                 )
 
                 Spacer(modifier = Modifier.height(32.dp))
-                HorizontalDivider(color = GreenMid, thickness = 1.dp)
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, thickness = 1.dp)
                 Spacer(modifier = Modifier.height(24.dp))
 
                 // Botón Calcular Ranking
@@ -168,8 +169,8 @@ fun AdminLoginScreen(
                         .fillMaxWidth()
                         .height(52.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = GoldBright,
-                        contentColor = GreenDark
+                        containerColor = LimeGreen,
+                        contentColor = NavyBlue
                     ),
                     shape = RoundedCornerShape(12.dp)
                 ) {
@@ -191,12 +192,12 @@ fun AdminLoginScreen(
                 // Estado del cálculo
                 when (val state = rankingState) {
                     is AdminViewModel.RankingState.Loading -> {
-                        CircularProgressIndicator(color = GoldBright)
+                        CircularProgressIndicator(color = LimeGreen)
                     }
                     is AdminViewModel.RankingState.Success -> {
                         Text(
                             text = "Ranking calculado para ${state.totalJugadores} jugador(es)",
-                            color = MintGreen,
+                            color = NavyBlue,
                             style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.SemiBold,
                             textAlign = TextAlign.Center
@@ -224,7 +225,8 @@ fun AdminLoginScreen(
                         }
                     },
                     modifier = Modifier.fillMaxWidth().height(48.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = MintGreen),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = NavyBlue),
+                    border = androidx.compose.foundation.BorderStroke(1.5.dp, NavyBlue),
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     Text(
@@ -238,7 +240,7 @@ fun AdminLoginScreen(
                 Icon(
                     imageVector = Icons.Filled.AdminPanelSettings,
                     contentDescription = null,
-                    tint = GoldBright,
+                    tint = NavyBlue,
                     modifier = Modifier.size(72.dp)
                 )
                 Spacer(modifier = Modifier.height(16.dp))
@@ -246,14 +248,14 @@ fun AdminLoginScreen(
                     text = "Login de administración",
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Bold,
-                    color = GoldBright,
+                    color = NavyBlue,
                     textAlign = TextAlign.Center
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = "Inicia sesión con tu cuenta de Google para acceder al panel de administración",
                     style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = TextSecondary,
                     textAlign = TextAlign.Center
                 )
                 Spacer(modifier = Modifier.height(32.dp))
@@ -263,8 +265,8 @@ fun AdminLoginScreen(
                         .fillMaxWidth()
                         .height(52.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = MintGreen,
-                        contentColor = GreenDark
+                        containerColor = LimeGreen,
+                        contentColor = NavyBlue
                     ),
                     shape = RoundedCornerShape(12.dp)
                 ) {
