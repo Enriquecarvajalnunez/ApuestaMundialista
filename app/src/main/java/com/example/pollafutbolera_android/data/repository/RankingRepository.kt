@@ -30,6 +30,28 @@ class RankingRepository {
         val error: String? = null
     )
 
+    private data class ScriptEmpatesJugador(
+        val nombre: String,
+        val cedula: String
+    )
+
+    private data class ScriptEmpatesGrupo(
+        val puntos: Int,
+        val jugadores: List<ScriptEmpatesJugador>
+    )
+
+    private data class ScriptEmpatesResponse(
+        val success: Boolean,
+        val totalGruposEmpate: Int? = null,
+        val empates: List<ScriptEmpatesGrupo>? = null,
+        val error: String? = null
+    )
+
+    data class EmpatesResult(
+        val totalGruposEmpate: Int,
+        val totalJugadoresEmpatados: Int
+    )
+
     private val moshi = Moshi.Builder()
         .addLast(KotlinJsonAdapterFactory())
         .build()
@@ -44,6 +66,7 @@ class RankingRepository {
 
     private val verRankingAdapter = moshi.adapter(ScriptVerRankingResponse::class.java)
     private val calcRankingAdapter = moshi.adapter(ScriptCalcRankingResponse::class.java)
+    private val empatesAdapter = moshi.adapter(ScriptEmpatesResponse::class.java)
 
     /** Lee el ranking ya calculado desde la hoja "Ranking" (accion=verRanking) */
     suspend fun fetchRanking(): List<RankingEntry> = withContext(Dispatchers.IO) {
@@ -72,6 +95,24 @@ class RankingRepository {
 
         if (!parsed.success) error(parsed.error ?: "Error desconocido")
         parsed.totalJugadores ?: 0
+    }
+
+    /** Busca jugadores empatados en la hoja Ranking y los copia a la hoja Empates */
+    suspend fun buscarEmpates(): EmpatesResult = withContext(Dispatchers.IO) {
+        val rawBody = get("${BetSubmitRepository.SCRIPT_URL}?accion=buscarEmpates")
+        val parsed = try {
+            empatesAdapter.fromJson(rawBody)
+        } catch (e: Exception) {
+            error("Respuesta no es JSON válido: ${rawBody.take(300)}")
+        } ?: error("Formato de respuesta inválido")
+
+        if (!parsed.success) error(parsed.error ?: "Error desconocido")
+
+        val totalJugadores = parsed.empates?.sumOf { it.jugadores.size } ?: 0
+        EmpatesResult(
+            totalGruposEmpate = parsed.totalGruposEmpate ?: 0,
+            totalJugadoresEmpatados = totalJugadores
+        )
     }
 
     private fun get(url: String): String {

@@ -8,7 +8,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.SportsSoccer
@@ -63,6 +66,7 @@ fun HomeScreen(
             modifier = modifier
                 .fillMaxSize()
                 .padding(innerPadding)
+                .verticalScroll(rememberScrollState())
                 .padding(horizontal = 24.dp, vertical = 32.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
@@ -98,6 +102,7 @@ fun HomeScreen(
                 onClick = onRegisterBetsClick,
                 modifier = Modifier
                     .fillMaxWidth()
+                    .widthIn(max = 480.dp)
                     .height(56.dp)
                     .clip(RoundedCornerShape(12.dp)),
                 colors = ButtonDefaults.buttonColors(
@@ -125,6 +130,7 @@ fun HomeScreen(
                 onClick = onViewBetsClick,
                 modifier = Modifier
                     .fillMaxWidth()
+                    .widthIn(max = 480.dp)
                     .height(56.dp),
                 colors = ButtonDefaults.outlinedButtonColors(contentColor = NavyBlue),
                 border = androidx.compose.foundation.BorderStroke(1.5.dp, NavyBlue),
