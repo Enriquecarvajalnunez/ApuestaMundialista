@@ -81,13 +81,100 @@ data class Group(
 val tournamentGroups = listOf(
     Group(
         name = "Grupo A",
-        teams = listOf("México", "Sudáfrica", "Corea del Sur", "UEFA 4"),
+        teams = listOf("México", "Sudáfrica", "Corea del Sur", "República Checa"),
         matches = listOf(
             Match(1, "México", "Sudáfrica"),
-            Match(2, "Corea del Sur", "UEFA 4")
+            Match(2, "Corea del Sur", "República Checa")
+        )
+    ),
+    Group(
+        name = "Grupo B",
+        teams = listOf("Canadá", "Bosnia y Herzegovina", "Catar", "Suiza"),
+        matches = listOf(
+            Match(1,"Canadá","Bosnia y Herzegovina" ),
+            Match(2,"Catar","Suiza")
+        )
+    ),
+    Group(
+        name = "Grupo C",
+        teams = listOf("Brasil", "Marruecos", "Haití", "Escocia"),
+        matches = listOf(
+            Match(1,"Brasil","Marruecos"),
+            Match(2,"Haití","Escocia")
+        )
+    ),
+    Group(
+        name = "Grupo D",
+        teams = listOf("Estados Unidos", "Paraguay", "Australia", "Turquía"),
+        matches = listOf(
+            Match(1,"Estados Unidos","Paraguay"),
+            Match(2,"Australia","Turquía")
+        )
+    ),
+    Group(
+        name = "Grupo E",
+        teams = listOf("Alemania", "Curazao", "Costa de Marfil", "Ecuador"),
+        matches = listOf(
+            Match(1,"Alemania","Curazao"),
+            Match(2,"Costa de Marfil","Ecuador")
+        )
+    ),
+    Group(
+        name = "Grupo F",
+        teams = listOf("Países Bajos", "Japón", "Suecia", "Túnez"),
+        matches = listOf(
+            Match(1,"Países Bajos","Japón"),
+            Match(2,"Suecia","Túnez")
+        )
+    ),
+    Group(
+        name = "Grupo G",
+        teams = listOf("Bélgica", "Egipto", "Irán", "Nueva Zelanda"),
+        matches = listOf(
+            Match(1,"Bélgica","Egipto"),
+            Match(2,"Irán","Nueva Zelanda")
+        )
+    ),
+    Group(
+        name = "Grupo H",
+        teams = listOf("España", "Cabo Verde", "Arabia Saudita", "Uruguay"),
+        matches = listOf(
+            Match(1,"España","Cabo Verde"),
+            Match(2,"Arabia Saudita","Uruguay")
+        )
+    ),
+    Group(
+        name = "Grupo I",
+        teams = listOf("Francia", "Senegal", "Irak", "Noruega"),
+        matches = listOf(
+            Match(1,"Francia","Senegal"),
+            Match(2,"Irak","Noruega")
+        )
+    ),
+    Group(
+        name = "Grupo J",
+        teams = listOf("Argentina", "Argelia", "Austria", "Jordania"),
+        matches = listOf(
+            Match(1,"Argentina","Argelia"),
+            Match(2,"Austria","Jordania")
+        )
+    ),
+    Group(
+        name = "Grupo K",
+        teams = listOf("Portugal","RD Congo","Uzbekistán","Colombia"),
+        matches = listOf(
+            Match(1,"Portugal","RD Congo"),
+            Match(2,"Uzbekistán","Colombia")
+        )
+    ),
+    Group(
+        name = "Grupo L",
+        teams = listOf("Inglaterra","Croacia","Ghana","Panamá"),
+        matches = listOf(
+            Match(1,"Inglaterra","Croacia"),
+            Match(2,"Ghana","Panamá")
         )
     )
-    // Agregar más grupos aquí cuando estén disponibles
 )
 
 // ---------- Pantalla principal ----------
@@ -234,10 +321,10 @@ fun BetRegistrationScreen(
 
                 groups.forEach { group ->
                     val isExpanded = expandedGroups[group.name] == true
-                    val groupComplete = group.matches.all { match ->
-                        val s = scores[match.id]
-                        s != null && s.first.isNotBlank() && s.second.isNotBlank()
-                    }
+                val groupComplete = group.matches.isEmpty() || group.matches.all { match ->
+                    val s = scores[match.id]
+                    s != null && s.first.isNotBlank() && s.second.isNotBlank()
+                }
                     GroupCard(
                         group = group,
                         isExpanded = isExpanded,
@@ -341,11 +428,18 @@ private fun GroupCard(
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold
                         )
-                        Text(
-                            text = "${group.matches.size} partidos · ${group.teams.size} equipos",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+            val nonEmptyTeams = group.teams.filter { it.isNotBlank() }
+            val subtitle = when {
+                nonEmptyTeams.isNotEmpty() && group.matches.isNotEmpty() -> "${group.matches.size} partidos · ${nonEmptyTeams.size} equipos"
+                nonEmptyTeams.isNotEmpty() -> "${nonEmptyTeams.size} equipos"
+                group.matches.isNotEmpty() -> "${group.matches.size} partidos"
+                else -> "Equipos por confirmar"
+            }
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
                     }
                 }
                 Icon(
@@ -356,7 +450,9 @@ private fun GroupCard(
                 )
             }
 
-            // Equipos del grupo (siempre visibles)
+        // Equipos del grupo (visibles solo si hay equipos definidos)
+        val nonEmptyTeams = group.teams.filter { it.isNotBlank() }
+        if (nonEmptyTeams.isNotEmpty()) {
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
@@ -373,7 +469,7 @@ private fun GroupCard(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        group.teams.forEach { team ->
+                        nonEmptyTeams.forEach { team ->
                             Surface(
                                 shape = RoundedCornerShape(20.dp),
                                 color = MaterialTheme.colorScheme.primaryContainer,
@@ -404,6 +500,7 @@ private fun GroupCard(
                     }
                 }
             }
+        }
 
             // Partidos con campos de marcador (solo al expandir)
             AnimatedVisibility(
