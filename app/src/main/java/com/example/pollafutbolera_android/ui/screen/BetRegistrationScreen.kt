@@ -235,7 +235,10 @@ fun BetRegistrationScreen(
             title = { Text("¡Apuesta registrada!") },
             text = { Text("Tu apuesta fue guardada exitosamente.") },
             confirmButton = {
-                Button(onClick = { viewModel.resetState() }) {
+                Button(onClick = {
+                    viewModel.resetState()
+                    onBack()
+                }) {
                     Text("OK")
                 }
             }
@@ -250,7 +253,10 @@ fun BetRegistrationScreen(
             title = { Text("Error al registrar") },
             text = { Text(errorMsg) },
             confirmButton = {
-                Button(onClick = { viewModel.resetState() }) {
+                Button(onClick = {
+                    viewModel.resetState()
+                    onBack()
+                }) {
                     Text("Reintentar")
                 }
             }
