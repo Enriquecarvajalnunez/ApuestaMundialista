@@ -13,7 +13,7 @@ import java.util.concurrent.TimeUnit
 
 class BetSubmitRepository {
     companion object {
-        const val SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz_mtswqX3QmmCwDghUd8FXPRIeIpX9z5AuiWQbIAn4t57pbAiFvMlfmbqnLeKITNtx/exec"
+        const val SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxgxe-Mtfx9w_0m-qU60O05B4rkw5S_gS_7lJd18DtG4MM9DV1zyIK5g5qHEfSdvqD2/exec"
     }
     private data class BetBatchRequest(
         val nombre: String,

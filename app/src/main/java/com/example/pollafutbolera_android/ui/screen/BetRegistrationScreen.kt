@@ -209,6 +209,11 @@ fun BetRegistrationScreen(
 
     val isLoading = uiState is BetRegistrationViewModel.UiState.Loading
 
+    // Verificar fecha límite al entrar a la pantalla
+    LaunchedEffect(Unit) {
+        viewModel.checkDeadline()
+    }
+
     // Reaccionar cuando se encuentran apuestas existentes
     LaunchedEffect(uiState) {
         if (uiState is BetRegistrationViewModel.UiState.ExistingBetsFound) {
@@ -234,6 +239,23 @@ fun BetRegistrationScreen(
             onDismissRequest = { viewModel.resetState() },
             title = { Text("¡Apuesta registrada!") },
             text = { Text("Tu apuesta fue guardada exitosamente.") },
+            confirmButton = {
+                Button(onClick = {
+                    viewModel.resetState()
+                    onBack()
+                }) {
+                    Text("OK")
+                }
+            }
+        )
+    }
+
+    // Diálogo de fecha límite cerrada
+    if (uiState is BetRegistrationViewModel.UiState.DeadlinePassed) {
+        AlertDialog(
+            onDismissRequest = { viewModel.resetState() },
+            title = { Text("Plazo cerrado") },
+            text = { Text("La fecha para realizar apuestas ya se encuentra cerrada, contacte con el administrador") },
             confirmButton = {
                 Button(onClick = {
                     viewModel.resetState()
@@ -430,7 +452,7 @@ fun BetRegistrationScreen(
                                 )
                             }
                         }
-                        viewModel.submit(fullName, idNumber, bets)
+                        viewModel.checkDeadlineAndSubmit(fullName, idNumber, bets)
                     },
                     enabled = allScoresFilled && !isLoading,
                     modifier = Modifier
