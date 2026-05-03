@@ -132,10 +132,12 @@ class MainActivity : ComponentActivity() {
                                 modifier = Modifier.padding(innerPadding)
                             )
                             AppScreen.Standings -> StandingsScreen(
-                                onBack = { currentScreen = AppScreen.Home }
+                                onBack = { currentScreen = AppScreen.Home },
+                                modifier = Modifier.padding(innerPadding)
                             )
                             AppScreen.AdminLogin -> AdminLoginScreen(
-                                onBack = { currentScreen = AppScreen.Home }
+                                onBack = { currentScreen = AppScreen.Home },
+                                modifier = Modifier.padding(innerPadding)
                             )
                         }
                     }
